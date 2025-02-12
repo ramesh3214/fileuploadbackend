@@ -3,6 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const File = require("../Model/File");
+const docxToPdf = require("docx-pdf");
 
 const router = express.Router();
 
@@ -25,11 +26,17 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const fileTypes = /jpeg|jpg|png|pdf|doc|docx|pptx/;
     const mimeType = fileTypes.test(file.mimetype);
-    const extname = fileTypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = fileTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
     if (mimeType && extname) {
       return cb(null, true);
     }
-    cb(new Error("Only .jpeg, .jpg, .png, .pdf, .doc, .docx, .pptx files are allowed"));
+    cb(
+      new Error(
+        "Only .jpeg, .jpg, .png, .pdf, .doc, .docx, .pptx files are allowed"
+      )
+    );
   },
 });
 
@@ -67,6 +74,37 @@ router.get("/files", async (req, res) => {
   } catch (error) {
     console.error("Error fetching files:", error);
     res.status(500).json({ message: "Server error fetching files" });
+  }
+});
+router.post("/convertFile", upload.single("file"), (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No file uploaded",
+      });
+    }
+
+    let outputPath = path.join(
+      __dirname,
+      "files",
+      `${req.file.originalname}.pdf`
+    );
+    docxToPdf(req.file.path, outputPath, (err, result) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          message: "Error converting docx to pdf",
+        });
+      }
+      res.download(outputPath, () => {
+        console.log("File Downloaded");
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+    });
   }
 });
 
