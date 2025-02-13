@@ -1,33 +1,50 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const path = require("path");
+import express from 'express';
+import fileUpload from 'express-fileupload';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
 
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log("MongoDB connection error:", err));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(fileUpload());
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.post('/upload', (req, res) => {
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send('No files were uploaded.');
+    }
 
-const uploadRoutes = require("./routes/upload");
-app.use("/api", uploadRoutes);
+    let uploadedFile = req.files.file;
+    let uploadPath = path.join(__dirname, 'uploads', uploadedFile.name);
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+    uploadedFile.mv(uploadPath, (err) => {
+        if (err) return res.status(500).send(err);
 
-app.get("/", (req, res) => {
-  res.send("Server is running...");
+        let outputFileName = `${path.parse(uploadedFile.name).name}.png`;
+        let outputPath = path.join(__dirname, 'output', outputFileName);
+
+        const command = [
+            '--headless',
+            '--convert-to', 'png',
+            '--outdir', path.join(__dirname, 'output'),
+            uploadPath
+        ];
+
+        const process = spawn('"C:\\Program Files\\LibreOffice\\program\\soffice.exe"', command, { shell: true });
+            
+        process.on('close', (code) => {
+            if (code !== 0) return res.status(500).send('Conversion failed');
+
+            res.json({ imageUrl: `http://localhost:3000/output/${outputFileName}` });
+        });
+    });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.use('/output', express.static(path.join(__dirname, 'output')));
+
+app.listen(3000, () => console.log('Server started on port 3000'));
+export default app;
