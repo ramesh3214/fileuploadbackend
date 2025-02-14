@@ -15,35 +15,34 @@ app.use(cors({ origin: 'https://pdfconvertor-y34p.onrender.com/', credentials: t
 app.use(fileUpload());
 
 app.post('/upload', (req, res) => {
-  if (!req.files || Object.keys(req.files).length === 0) {
-    return res.status(400).send('No files were uploaded.');
-  }
+    if (!req.files || Object.keys(req.files).length === 0) {
+        return res.status(400).send('No files were uploaded.');
+    }
 
-  let uploadedFile = req.files.file;
-  let uploadPath = path.join(__dirname, 'uploads', uploadedFile.name);
+    let uploadedFile = req.files.file;
+    let uploadPath = path.join(__dirname, 'uploads', uploadedFile.name);
 
-  uploadedFile.mv(uploadPath, (err) => {
-    if (err) return res.status(500).send(err);
+    uploadedFile.mv(uploadPath, (err) => {
+        if (err) return res.status(500).send(err);
 
-    let outputFileName = `${path.parse(uploadedFile.name).name}.png`;
-    let outputPath = path.join(__dirname, 'output', outputFileName);
+        let outputFileName = `${path.parse(uploadedFile.name).name}.png`;
+        let outputPath = path.join(__dirname, 'output', outputFileName);
 
-    // Command for Linux environment using LibreOffice
-    const command = `"libreoffice" --headless --convert-to png --outdir "${path.join(__dirname, 'output')}" "${uploadPath}"`;
+        const command = `"C:\\Program Files\\LibreOffice\\program\\soffice.exe" --headless --convert-to png --outdir "${path.join(__dirname, 'output')}" "${uploadPath}"`;
 
-    exec(command, { maxBuffer: 1024 * 1024 * 100 }, (error) => {
-      if (error) return res.status(500).send(error.message);
+        exec(command, { maxBuffer: 1024 * 1024 * 100 }, (error) => {
+            if (error) return res.status(500).send(error.message);
 
-      sharp(outputPath)
-        .resize({ width: 1000 })
-        .png({ compressionLevel: 2 })
-        .toBuffer((err, buffer) => {
-          if (err) return res.status(500).send(err.message);
-          fs.writeFileSync(outputPath, buffer);
-          res.json({ imageUrl: `/output/${outputFileName}` });
+            sharp(outputPath)
+                .resize({ width: 1000 })
+                .png({ compressionLevel: 2 })
+                .toBuffer((err, buffer) => {
+                    if (err) return res.status(500).send(err.message);
+                    fs.writeFileSync(outputPath, buffer);
+                    res.json({ imageUrl: `/output/${outputFileName}` });
+                });
         });
     });
-  });
 });
 
 app.use('/output', express.static(path.join(__dirname, 'output')));
