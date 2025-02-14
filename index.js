@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ origin: 'https://pdfconvertor-ycw3.onrender.com', credentials: true }));
 app.use(fileUpload());
 
 app.post('/upload', (req, res) => {
@@ -40,7 +40,7 @@ app.post('/upload', (req, res) => {
         .toBuffer((err, buffer) => {
           if (err) return res.status(500).send(err.message);
           fs.writeFileSync(outputPath, buffer);
-          res.json({ imageUrl: `http://localhost:3000/output/${outputFileName}` });
+          res.json({ imageUrl: `/output/${outputFileName}` });
         });
     });
   });
