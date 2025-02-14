@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(cors({ origin: "https://pdfconvertor-yzij.vercel.app", credentials: true }));
+app.use(cors({ origin: "https://pdfconvertor-j2gl.onrender.com", credentials: true }));
 app.use(fileUpload());
 
 app.post('/upload', (req, res) => {
