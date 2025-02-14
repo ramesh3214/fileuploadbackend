@@ -5,7 +5,7 @@ FROM node:18-bullseye
 RUN apt-get update && apt-get install -y libreoffice
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR .
 
 # Copy package files and install dependencies
 COPY package*.json ./
