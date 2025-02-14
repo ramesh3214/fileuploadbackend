@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: pdf-converter
+    env: node
+    plan: free
+    buildCommand: |
+      apt-get update
+      apt-get install -y libreoffice
+      npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
