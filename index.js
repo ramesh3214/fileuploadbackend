@@ -28,7 +28,7 @@ app.post('/upload', (req, res) => {
         let outputFileName = `${path.parse(uploadedFile.name).name}.png`;
         let outputPath = path.join(__dirname, 'output', outputFileName);
 
-        const command = `"C:\\Program Files\\LibreOffice\\program\\soffice.exe" --headless --convert-to png --outdir "${path.join(__dirname, 'output')}" "${uploadPath}"`;
+        const command = `"libreoffice" --headless --convert-to png --outdir "${path.join(__dirname, 'output')}" "${uploadPath}"`;
 
         exec(command, { maxBuffer: 1024 * 1024 * 100 }, (error) => {
             if (error) return res.status(500).send(error.message);
